@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Live BTC Price Checker</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #1a1a2e; /* Warna latar belakang gelap */
+            color: #ffffff;
+        }
+        .container {
+            background-color: #0f3460; /* Kontainer berwarna biru tua */
+            padding: 40px;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            text-align: center;
+            width: 90%;
+            max-width: 400px;
+        }
+        h1 {
+            color: #ffc107; /* Warna kuning emas */
+            margin-bottom: 20px;
+            font-size: 1.5em;
+        }
+        #price-display {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 30px 0;
+            color: #00ff80; /* Warna hijau neon */
+            word-wrap: break-word; /* Memastikan teks tidak melebihi batas */
+        }
+        #last-updated {
+            font-size: 0.8em;
+            color: #aaaaaa;
+        }
+        .symbol {
+            font-size: 0.7em;
+            color: #ffc107;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Bitcoin (BTC) Live Price</h1>
+        
+        <div id="price-display">
+            <span class="symbol">Loading...</span>
+        </div>
+
+        <p id="last-updated">Terakhir diperbarui: Sedang memuat...</p>
+    </div>
+
+    <script>
+        const COIN_ID = "bitcoin";
+        const CURRENCY = "usd";
+        const API_URL = `https://api.coingecko.com/api/v3/simple/price?ids=${COIN_ID}&vs_currencies=${CURRENCY}&include_last_updated_at=true`;
+        
+        // Fungsi utama untuk mengambil data dari API
+        async function fetchPrice() {
+            try {
+                const response = await fetch(API_URL);
+                const data = await response.json();
+
+                const price = data[COIN_ID][CURRENCY];
+                const lastUpdatedTimestamp = data[COIN_ID].last_updated_at;
+
+                // Memformat harga ke mata uang USD
+                const formatter = new Intl.NumberFormat('en-US', {
+                    style: 'currency',
+                    currency: 'USD',
+                    minimumFractionDigits: 2,
+                    maximumFractionDigits: 2,
+                });
+                
+                const formattedPrice = formatter.format(price);
+
+                // Memformat waktu pembaruan
+                const date = new Date(lastUpdatedTimestamp * 1000);
+                const timeString = date.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+
+                // Memperbarui elemen HTML
+                document.getElementById('price-display').innerHTML = formattedPrice + ' <span class="symbol">USD</span>';
+                document.getElementById('last-updated').textContent = `Terakhir diperbarui: ${timeString} WIB`;
+
+            } catch (error) {
+                console.error("Gagal mengambil data:", error);
+                document.getElementById('price-display').innerHTML = "⚠️ Gagal Memuat Data";
+                document.getElementById('last-updated').textContent = "Coba lagi nanti.";
+            }
+        }
+
+        // Jalankan fungsi saat halaman dimuat
+        fetchPrice();
+
+        // Atur agar harga diperbarui setiap 10 detik
+        // CATATAN: Jangan terlalu cepat, agar CoinGecko tidak memblokir Anda!
+        setInterval(fetchPrice, 10000); // 10000 milidetik = 10 detik
+
+    </script>
+</body>
+</html>
